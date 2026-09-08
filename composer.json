@@ -1,0 +1,65 @@
+{
+    "name": "devletes/filament-time-picker",
+    "description": "A clock-face time picker for Filament — hour and minute dials, drag or type, natively in Livewire and Alpine. No jQuery, no date library, no build step.",
+    "keywords": [
+        "filament",
+        "laravel",
+        "livewire",
+        "alpine",
+        "time-picker",
+        "timepicker",
+        "clock",
+        "clock-picker",
+        "dial",
+        "form-component"
+    ],
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "filament/filament": "^4.0|^5.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0|^10.0",
+        "phpunit/phpunit": "^11.0|^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Devletes\\TimePicker\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Devletes\\TimePicker\\Tests\\": "tests/",
+            "Workbench\\App\\": "workbench/app/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "post-autoload-dump": [
+            "@clear",
+            "@prepare"
+        ],
+        "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
+        "prepare": "@php vendor/bin/testbench package:discover --ansi",
+        "build": "@php vendor/bin/testbench workbench:build --ansi",
+        "filament-assets": "@php vendor/orchestra/testbench-core/laravel/artisan filament:assets --ansi",
+        "serve": [
+            "Composer\\Config::disableProcessTimeout",
+            "@build",
+            "@filament-assets",
+            "@php vendor/bin/testbench serve --port=8766 --ansi"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Devletes\\TimePicker\\TimePickerServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

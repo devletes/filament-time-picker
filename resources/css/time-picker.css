@@ -1,0 +1,269 @@
+/**
+ * Devletes Time Picker — panel styling. (rev 1)
+ *
+ * Every colour resolves through Filament's own palette variables, so a panel
+ * that changes its primary colour or its theme carries through here without
+ * this file knowing anything about it. The trigger is deliberately unstyled:
+ * it sits inside Filament's own input wrapper and inherits it.
+ */
+
+.fi-dtp {
+    --fi-dtp-surface: #ffffff;
+    --fi-dtp-plate: var(--gray-100, #f3f4f6);
+    --fi-dtp-border: var(--gray-200, #e5e7eb);
+    --fi-dtp-text: var(--gray-950, #030712);
+    --fi-dtp-muted: var(--gray-500, #6b7280);
+    --fi-dtp-faded: var(--gray-400, #9ca3af);
+    --fi-dtp-accent: var(--primary-600, #2563eb);
+    --fi-dtp-on-accent: var(--primary-50, #eff6ff);
+    --fi-dtp-hover: var(--gray-100, #f3f4f6);
+
+    position: relative;
+    width: 100%;
+}
+
+:where(.dark) .fi-dtp {
+    --fi-dtp-surface: var(--gray-900, #111827);
+    --fi-dtp-plate: var(--gray-800, #1f2937);
+    --fi-dtp-border: var(--gray-700, #374151);
+    --fi-dtp-text: var(--gray-50, #f9fafb);
+    --fi-dtp-muted: var(--gray-400, #9ca3af);
+    --fi-dtp-faded: var(--gray-600, #4b5563);
+    --fi-dtp-accent: var(--primary-500, #3b82f6);
+    --fi-dtp-on-accent: var(--gray-950, #030712);
+    --fi-dtp-hover: var(--gray-800, #1f2937);
+}
+
+/* The trigger fills the wrapper so the whole field is clickable, and keeps
+   none of a button's own chrome — the wrapper already draws the input. */
+.fi-dtp-trigger {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    background: none;
+    padding: 0;
+    text-align: start;
+    cursor: pointer;
+}
+
+.fi-dtp-trigger:disabled {
+    cursor: not-allowed;
+}
+
+.fi-dtp-display {
+    cursor: inherit;
+}
+
+/* ------------------------------------------------------------------------ */
+/* Panel                                                                     */
+/* ------------------------------------------------------------------------ */
+
+.fi-dtp-panel {
+    position: absolute;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 17.5rem;
+    padding: 0.875rem;
+    border: 1px solid var(--fi-dtp-border);
+    border-radius: 0.75rem;
+    background-color: var(--fi-dtp-surface);
+    color: var(--fi-dtp-text);
+    box-shadow:
+        0 10px 15px -3px rgb(0 0 0 / 0.1),
+        0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+/* ------------------------------------------------------------------------ */
+/* Readout                                                                   */
+/* ------------------------------------------------------------------------ */
+
+.fi-dtp-readout {
+    display: flex;
+    align-items: center;
+    gap: 0.125rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.fi-dtp-readout-input {
+    width: 2.75rem;
+    padding: 0.125rem 0;
+    border: 0;
+    border-radius: 0.375rem;
+    background-color: transparent;
+    color: var(--fi-dtp-muted);
+    font-size: 1.875rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    transition: color 75ms ease, background-color 75ms ease;
+}
+
+.fi-dtp-readout-input:hover {
+    background-color: var(--fi-dtp-hover);
+}
+
+.fi-dtp-readout-input:focus {
+    outline: none;
+}
+
+.fi-dtp-readout-active {
+    color: var(--fi-dtp-accent);
+}
+
+.fi-dtp-readout-separator {
+    color: var(--fi-dtp-faded);
+    font-size: 1.875rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.fi-dtp-meridiem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-inline-start: auto;
+}
+
+.fi-dtp-meridiem-option {
+    padding: 0.1875rem 0.5rem;
+    border: 1px solid var(--fi-dtp-border);
+    border-radius: 0.375rem;
+    background-color: transparent;
+    color: var(--fi-dtp-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1rem;
+    cursor: pointer;
+    transition: background-color 75ms ease, color 75ms ease;
+}
+
+.fi-dtp-meridiem-option:hover:not(:disabled) {
+    background-color: var(--fi-dtp-hover);
+}
+
+.fi-dtp-meridiem-option:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.fi-dtp-meridiem-active {
+    border-color: transparent;
+    background-color: var(--fi-dtp-accent);
+    color: var(--fi-dtp-on-accent);
+}
+
+/* ------------------------------------------------------------------------ */
+/* Dial                                                                      */
+/* ------------------------------------------------------------------------ */
+
+.fi-dtp-dial {
+    display: flex;
+    justify-content: center;
+}
+
+.fi-dtp-face {
+    width: 14rem;
+    height: 14rem;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: pointer;
+}
+
+.fi-dtp-face-plate {
+    fill: var(--fi-dtp-plate);
+}
+
+.fi-dtp-hand-line {
+    stroke: var(--fi-dtp-accent);
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.fi-dtp-hand-knob {
+    fill: var(--fi-dtp-accent);
+}
+
+.fi-dtp-hand-pin {
+    fill: var(--fi-dtp-accent);
+}
+
+.fi-dtp-numeral {
+    fill: var(--fi-dtp-text);
+    font-size: 15px;
+    font-weight: 500;
+    pointer-events: none;
+}
+
+.fi-dtp-numeral-inner {
+    font-size: 12px;
+    fill: var(--fi-dtp-muted);
+}
+
+/* Sits on the hand's knob, so it takes the colour that reads against it. */
+.fi-dtp-numeral-selected {
+    fill: var(--fi-dtp-on-accent);
+    font-weight: 600;
+}
+
+.fi-dtp-numeral-disabled {
+    fill: var(--fi-dtp-faded);
+    opacity: 0.55;
+}
+
+/* ------------------------------------------------------------------------ */
+/* Footer                                                                    */
+/* ------------------------------------------------------------------------ */
+
+.fi-dtp-footer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.fi-dtp-footer-end {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-inline-start: auto;
+}
+
+.fi-dtp-action {
+    padding: 0.3125rem 0.75rem;
+    border: 0;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1rem;
+    cursor: pointer;
+    transition: background-color 75ms ease;
+}
+
+.fi-dtp-action-ghost {
+    background-color: transparent;
+    color: var(--fi-dtp-muted);
+}
+
+.fi-dtp-action-ghost:hover {
+    background-color: var(--fi-dtp-hover);
+}
+
+.fi-dtp-action-primary {
+    background-color: var(--fi-dtp-accent);
+    color: var(--fi-dtp-on-accent);
+}
+
+.fi-dtp-action-primary:hover {
+    filter: brightness(0.95);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fi-dtp-readout-input,
+    .fi-dtp-meridiem-option,
+    .fi-dtp-action {
+        transition: none;
+    }
+}
