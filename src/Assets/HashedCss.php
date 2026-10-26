@@ -4,12 +4,7 @@ namespace Devletes\TimePicker\Assets;
 
 use Filament\Support\Assets\Css;
 
-/**
- * Filament versions package assets by the package's installed version, which
- * never changes for a path repository — so edits to the stylesheet are served
- * from cache indefinitely during development. Hashing the file contents makes
- * the version track the file itself.
- */
+/** Versions by content hash: a path repository's package version never changes, so edits would stay cached. */
 class HashedCss extends Css
 {
     public function getVersion(): string

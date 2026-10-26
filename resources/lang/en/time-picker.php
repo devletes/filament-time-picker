@@ -6,9 +6,22 @@ return [
     'cancel' => 'Cancel',
     'now' => 'Now',
 
+    'date' => 'Date',
+    'time' => 'Time',
+    'month' => 'Month',
+    'year' => 'Year',
+    'previous_month' => 'Previous month',
+    'next_month' => 'Next month',
+
     'hour' => 'Hour',
     'minute' => 'Minute',
     'second' => 'Second',
+
+    'dial' => [
+        'hour' => 'hr',
+        'minute' => 'min',
+        'second' => 'sec',
+    ],
 
     'select_hour' => 'Select an hour',
     'select_minute' => 'Select a minute',

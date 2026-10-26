@@ -1,26 +1,36 @@
 {
     "name": "devletes/filament-time-picker",
-    "description": "A clock-face time picker for Filament — hour and minute dials, drag or type, natively in Livewire and Alpine. No jQuery, no date library, no build step.",
+    "description": "A clock-face time and date-time picker for Filament — hour and minute dials, drag or type, natively in Livewire and Alpine. No jQuery, no date library, no build step.",
+    "type": "library",
+    "license": "MIT",
     "keywords": [
         "filament",
+        "filament-plugin",
         "laravel",
         "livewire",
         "alpine",
         "time-picker",
         "timepicker",
+        "date-time-picker",
         "clock",
         "clock-picker",
         "dial",
         "form-component"
     ],
-    "license": "MIT",
+    "authors": [
+        {
+            "name": "Devletes",
+            "email": "packages@devletes.com"
+        }
+    ],
     "require": {
         "php": "^8.2",
-        "filament/filament": "^4.0|^5.0"
+        "filament/filament": "^5.0"
     },
     "require-dev": {
-        "orchestra/testbench": "^9.0|^10.0",
-        "phpunit/phpunit": "^11.0|^12.0"
+        "laravel/pint": "^1.18",
+        "orchestra/testbench": "^10.0 || ^11.0",
+        "phpunit/phpunit": "^11.0 || ^12.0"
     },
     "autoload": {
         "psr-4": {
@@ -30,11 +40,13 @@
     "autoload-dev": {
         "psr-4": {
             "Devletes\\TimePicker\\Tests\\": "tests/",
-            "Workbench\\App\\": "workbench/app/"
+            "Workbench\\App\\": "workbench/app/",
+            "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
         }
     },
     "scripts": {
         "test": "vendor/bin/phpunit",
+        "format": "vendor/bin/pint",
         "post-autoload-dump": [
             "@clear",
             "@prepare"
@@ -61,5 +73,10 @@
         "sort-packages": true
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "homepage": "https://github.com/devletes/filament-time-picker",
+    "support": {
+        "issues": "https://github.com/devletes/filament-time-picker/issues",
+        "source": "https://github.com/devletes/filament-time-picker"
+    }
 }

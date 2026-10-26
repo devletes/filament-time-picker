@@ -1,34 +1,15 @@
-/**
- * Devletes Time Picker — a clock face for Filament. (rev 1)
- *
- * No dependencies: the formatting and parsing this needs is a handful of PHP
- * date tokens, which is far less code than a date library would cost. The
- * picker edits a draft while it is open and writes to Livewire only when the
- * panel is confirmed, so a cancel really does leave the field as it was.
- *
- * Everything is held in 24-hour internally. AM/PM is a presentation of the
- * same hour, which is what stops noon and midnight going wrong.
- */
-
-// Everything lives inside this wrapper. Filament serves package scripts as
-// classic scripts, which share one global lexical scope, so a bare top-level
-// `const clamp` here would collide with another package's and take the whole
-// file down with a redeclaration error before Alpine ever sees it.
+// IIFE: classic scripts share one global scope, so top-level consts would collide with other packages.
 ;(() => {
-    /** How far out the two rings of numerals sit, in the face's own units. */
     const OUTER_RADIUS = 84
     const INNER_RADIUS = 54
-    /** Anything inside this belongs to the inner ring on a 24-hour face. */
     const RING_BOUNDARY = 69
     const FACE_SIZE = 224
     const FACE_CENTRE = FACE_SIZE / 2
-
 
     const pad2 = (value) => String(value).padStart(2, '0')
 
     const clamp = (value, min, max) => Math.min(Math.max(value, min), max)
 
-    /** Seconds since midnight, the one currency all the bounds maths uses. */
     const toSeconds = (hour, minute, second) => (hour * 3600) + (minute * 60) + second
 
     const parseBound = (value) => {
@@ -45,13 +26,22 @@
         return toSeconds(parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0)
     }
 
-    /**
-     * The PHP date tokens a value can be written with. Anything else in the
-     * format is passed through, and a backslash escapes the character after it.
-     * The date tokens are here because Filament's internal state for a
-     * non-native picker is a whole `Y-m-d H:i:s`, even for a time-only field.
-     */
-    const formatValue = ({ year, month, day, hour, minute, second }, format) => {
+    const names = (locale, options, count, dateFor) => Array.from({ length: count }, (_, index) => {
+        try {
+            return new Intl.DateTimeFormat(locale, options).format(dateFor(index))
+        } catch (exception) {
+            return new Intl.DateTimeFormat('en', options).format(dateFor(index))
+        }
+    })
+
+    const monthNames = (locale, style) => names(locale, { month: style }, 12, (index) => new Date(2020, index, 1))
+
+    // 2 Jan 2022 was a Sunday, so index 0 is Sunday as in Date#getDay().
+    const weekdayNames = (locale, style) => names(locale, { weekday: style }, 7, (index) => new Date(2022, 0, 2 + index))
+
+    const weekdayOf = (year, month, day) => new Date(year, month - 1, day).getDay()
+
+    const formatValue = ({ year, month, day, hour, minute, second }, format, locale = 'en') => {
         const meridiem = hour < 12 ? 'AM' : 'PM'
         const twelve = hour % 12 === 0 ? 12 : hour % 12
 
@@ -82,6 +72,10 @@
                 case 'n': out += String(month); break
                 case 'd': out += pad2(day); break
                 case 'j': out += String(day); break
+                case 'M': out += monthNames(locale, 'short')[month - 1]; break
+                case 'F': out += monthNames(locale, 'long')[month - 1]; break
+                case 'D': out += weekdayNames(locale, 'short')[weekdayOf(year, month, day)]; break
+                case 'l': out += weekdayNames(locale, 'long')[weekdayOf(year, month, day)]; break
                 default: out += token
             }
         }
@@ -89,12 +83,7 @@
         return out
     }
 
-    /**
-     * Read a stored value back. Filament hands a non-native picker a whole
-     * `Y-m-d H:i:s`, so the time is found by its shape rather than by taking
-     * the first numbers in the string — "2026-09-07 18:41:00" starts with a
-     * year, and reading that as the hour is how a picker ends up on 8:26.
-     */
+    // Filament's state is a whole Y-m-d H:i:s, so the time is matched by its shape, not the first numbers.
     const parseValue = (value) => {
         if (typeof value !== 'string' || value.trim() === '') {
             return null
@@ -133,7 +122,6 @@
         }
     }
 
-    /** The date a written value keeps: the one it already had, else today. */
     const dateOf = (value) => {
         const parsed = parseValue(value)
 
@@ -153,6 +141,13 @@
 
             open: false,
             stage: 'hour',
+            view: config.hasDate ? 'date' : 'time',
+
+            year: null,
+            month: null,
+            day: null,
+            focusedYear: null,
+            focusedMonth: null,
 
             hour: null,
             minute: null,
@@ -169,8 +164,7 @@
             init() {
                 this.syncFromState()
 
-                // The server can change the field underneath us — another action
-                // writing to it, a form reset — and the panel has to follow.
+                // Follow server-side changes (other actions, form resets) while closed.
                 this.$watch('state', () => {
                     if (! this.open) {
                         this.syncFromState()
@@ -182,9 +176,7 @@
                 }
             },
 
-            // ------------------------------------------------------------------
             // Reading and writing the field
-            // ------------------------------------------------------------------
 
             syncFromState() {
                 const parsed = parseValue(this.state)
@@ -194,6 +186,18 @@
                 this.second = parsed?.second ?? null
                 this.stage = 'hour'
 
+                if (this.config.hasDate) {
+                    this.year = parsed?.year ?? null
+                    this.month = parsed?.month ?? null
+                    this.day = parsed?.day ?? null
+
+                    const focus = parsed ?? parseValue(this.config.defaultFocusedDate) ?? dateOf(null)
+
+                    this.focusedYear = focus.year
+                    this.focusedMonth = focus.month - 1
+                    this.view = 'date'
+                }
+
                 this.syncText()
                 this.refreshDisplay()
             },
@@ -201,15 +205,25 @@
             refreshDisplay() {
                 const parsed = parseValue(this.state)
 
-                this.displayText = parsed ? formatValue(parsed, this.config.displayFormat) : ''
+                this.displayText = parsed ? formatValue(parsed, this.config.displayFormat, this.config.locale) : ''
             },
 
-            /**
-             * The draft as Filament stores it, or null while it is incomplete.
-             * The date is carried through untouched: the field is about a time,
-             * but the state it lives in is a whole datetime.
-             */
             get draftValue() {
+                if (this.config.hasDate) {
+                    if (this.day === null) {
+                        return null
+                    }
+
+                    return formatValue({
+                        year: this.year,
+                        month: this.month,
+                        day: this.day,
+                        hour: this.hour ?? 0,
+                        minute: this.minute ?? 0,
+                        second: this.second ?? 0,
+                    }, this.config.internalFormat)
+                }
+
                 if (this.hour === null) {
                     return null
                 }
@@ -238,9 +252,7 @@
                 this.syncFromState()
             },
 
-            // ------------------------------------------------------------------
             // The panel
-            // ------------------------------------------------------------------
 
             toggle() {
                 this.open ? this.close() : this.show()
@@ -271,6 +283,14 @@
             setNow() {
                 const now = new Date()
 
+                if (this.config.hasDate) {
+                    this.year = now.getFullYear()
+                    this.month = now.getMonth() + 1
+                    this.day = now.getDate()
+                    this.focusedYear = this.year
+                    this.focusedMonth = this.month - 1
+                }
+
                 this.hour = now.getHours()
                 this.minute = this.snap(now.getMinutes(), this.config.minutesStep, 60)
                 this.second = this.config.hasSeconds
@@ -285,6 +305,136 @@
                 }
             },
 
+            // The calendar
+
+            get monthNames() {
+                return monthNames(this.config.locale, 'long')
+            },
+
+            get dayNames() {
+                const short = weekdayNames(this.config.locale, 'short')
+
+                return Array.from({ length: 7 }, (_, index) => short[(index + this.config.firstDayOfWeek) % 7])
+            },
+
+            get daysInFocusedMonth() {
+                const count = new Date(this.focusedYear, this.focusedMonth + 1, 0).getDate()
+
+                return Array.from({ length: count }, (_, index) => index + 1)
+            },
+
+            get leadingBlanks() {
+                const first = new Date(this.focusedYear, this.focusedMonth, 1).getDay()
+
+                return Array.from({ length: (first - this.config.firstDayOfWeek + 7) % 7 }, (_, index) => index)
+            },
+
+            previousMonth() {
+                this.focusedMonth === 0
+                    ? (this.focusedMonth = 11, this.focusedYear--)
+                    : this.focusedMonth--
+            },
+
+            nextMonth() {
+                this.focusedMonth === 11
+                    ? (this.focusedMonth = 0, this.focusedYear++)
+                    : this.focusedMonth++
+            },
+
+            dateKey(year, month, day) {
+                return `${year}-${pad2(month)}-${pad2(day)}`
+            },
+
+            get selectedKey() {
+                return this.day === null ? null : this.dateKey(this.year, this.month, this.day)
+            },
+
+            focusedKey(day) {
+                return this.dateKey(this.focusedYear, this.focusedMonth + 1, day)
+            },
+
+            dayIsSelected(day) {
+                return this.selectedKey === this.focusedKey(day)
+            },
+
+            dayIsToday(day) {
+                const today = dateOf(null)
+
+                return this.dateKey(today.year, today.month, today.day) === this.focusedKey(day)
+            },
+
+            dayIsDisabled(day) {
+                const key = this.focusedKey(day)
+                const min = this.config.minDate?.slice(0, 10)
+                const max = this.config.maxDate?.slice(0, 10)
+
+                return (min && key < min) || (max && key > max) || this.config.disabledDates.includes(key)
+            },
+
+            selectDay(day) {
+                if (this.dayIsDisabled(day)) {
+                    return
+                }
+
+                this.year = this.focusedYear
+                this.month = this.focusedMonth + 1
+                this.day = day
+
+                this.pullIntoBounds()
+                this.syncText()
+
+                if (this.config.closeOnDateSelection || (! this.config.hasTime && this.config.closeOnComplete)) {
+                    this.confirm()
+
+                    return
+                }
+
+                if (this.config.hasTime) {
+                    this.showTime()
+                }
+            },
+
+            showTime() {
+                this.view = 'time'
+                this.stage = 'hour'
+            },
+
+            get dateLabel() {
+                return this.day === null
+                    ? ''
+                    : formatValue({ year: this.year, month: this.month, day: this.day, hour: 0, minute: 0, second: 0 }, 'D, M j', this.config.locale)
+            },
+
+            get timeLabel() {
+                return this.hour === null
+                    ? ''
+                    : formatValue({ ...dateOf(null), hour: this.hour, minute: this.minute ?? 0, second: this.second ?? 0 }, this.config.timeDisplayFormat, this.config.locale)
+            },
+
+            // Bounds for the selected day: the daily window, narrowed by minDate/maxDate on their own day
+
+            boundOnSelectedDay(value) {
+                if (! this.config.hasDate || ! value || this.selectedKey !== value.slice(0, 10)) {
+                    return null
+                }
+
+                return parseBound(value.slice(11))
+            },
+
+            get minBound() {
+                const daily = parseBound(this.config.minTime)
+                const dated = this.boundOnSelectedDay(this.config.minDate)
+
+                return daily === null ? dated : (dated === null ? daily : Math.max(daily, dated))
+            },
+
+            get maxBound() {
+                const daily = parseBound(this.config.maxTime)
+                const dated = this.boundOnSelectedDay(this.config.maxDate)
+
+                return daily === null ? dated : (dated === null ? daily : Math.min(daily, dated))
+            },
+
             get stageLabel() {
                 const labels = this.config.labels
 
@@ -295,9 +445,7 @@
                 }[this.stage]
             },
 
-            // ------------------------------------------------------------------
             // The hand
-            // ------------------------------------------------------------------
 
             get hasSelection() {
                 return this.currentStageValue !== null
@@ -327,14 +475,11 @@
                     : OUTER_RADIUS
             },
 
-            /** Midnight and the afternoon hours live on the inner ring. */
             isInnerHour(hour) {
                 return this.config.hoursCycle === 24 && (hour === 0 || hour >= 13)
             },
 
-            // ------------------------------------------------------------------
             // Numerals
-            // ------------------------------------------------------------------
 
             numeralClass(stage, value) {
                 return {
@@ -361,14 +506,10 @@
                     : this.hour % 12 === value % 12
             },
 
-            /**
-             * A numeral is offered when any time it could still lead to is inside
-             * the bounds: an hour whose minutes are all out of range is not worth
-             * pointing at, but one with a single reachable minute is.
-             */
+            // Allowed when any time the numeral could still lead to is inside the bounds.
             isNumeralAllowed(stage, value) {
-                const min = parseBound(this.config.minTime)
-                const max = parseBound(this.config.maxTime)
+                const min = this.minBound
+                const max = this.maxBound
 
                 if (min === null && max === null) {
                     return true
@@ -401,7 +542,6 @@
                 return ! (max !== null && from > max)
             },
 
-            /** Only the 24-hour face has a second ring, and 0 and 13–23 are on it. */
             isInnerNumeral(value) {
                 return value === 0 || value >= 13
             },
@@ -415,11 +555,9 @@
                             return true
                         }
 
-                        // On a 12-hour face the numeral does not say which half of
-                        // the day it is, so the bound has to be checked on the
-                        // hour the switch would actually produce.
-                        const min = parseBound(this.config.minTime)
-                        const max = parseBound(this.config.maxTime)
+                        // A 12-hour numeral has no half of day, so check the hour this switch would produce.
+                        const min = this.minBound
+                        const max = this.maxBound
                         const from = toSeconds(hour, 0, 0)
                         const to = toSeconds(hour, 59, 59)
 
@@ -432,9 +570,7 @@
                 return false
             },
 
-            // ------------------------------------------------------------------
             // Meridiem
-            // ------------------------------------------------------------------
 
             get meridiem() {
                 if (this.hour === null) {
@@ -457,9 +593,7 @@
                 this.syncText()
             },
 
-            // ------------------------------------------------------------------
             // Pointer
-            // ------------------------------------------------------------------
 
             onPointerDown(event) {
                 if (event.button !== undefined && event.button !== 0) {
@@ -471,8 +605,7 @@
                 try {
                     this.$refs.face.setPointerCapture(event.pointerId)
                 } catch (exception) {
-                    // Capture is a convenience; without it the drag simply ends
-                    // when the pointer leaves the face.
+                    // Capture is optional; without it the drag ends when the pointer leaves the face.
                 }
 
                 this.applyPointer(event)
@@ -494,11 +627,13 @@
                 }
 
                 this.dragging = false
-                this.applyPointer(event)
-                this.advanceStage()
+
+                // A release on a dimmed numeral picks nothing, so it must not move on to the next dial.
+                if (this.applyPointer(event)) {
+                    this.advanceStage()
+                }
             },
 
-            /** Where the pointer is on the face, as an angle and a radius. */
             readPointer(event) {
                 const rect = this.$refs.face.getBoundingClientRect()
                 const scale = FACE_SIZE / rect.width
@@ -525,7 +660,7 @@
                         : (index === 0 ? 12 : index)
 
                     if (! this.isNumeralAllowed('hour', numeral)) {
-                        return
+                        return false
                     }
 
                     this.hour = this.hourFromNumeral(numeral, isInner)
@@ -542,19 +677,17 @@
                     const value = this.snap(Math.round(angle / 6) % 60, step, 60)
 
                     if (! this.isNumeralAllowed(this.stage, value)) {
-                        return
+                        return false
                     }
 
                     this[this.stage] = value
                 }
 
                 this.syncText()
+
+                return true
             },
 
-            /**
-             * A numeral to the hour it means. On the 12-hour face the numeral is
-             * half the answer and the AM/PM switch is the other half.
-             */
             hourFromNumeral(numeral, isInner) {
                 if (this.config.hoursCycle === 24) {
                     return isInner ? numeral : numeral % 24
@@ -583,9 +716,7 @@
                 }
             },
 
-            // ------------------------------------------------------------------
             // Typing
-            // ------------------------------------------------------------------
 
             onTyped(part, event) {
                 const digits = event.target.value.replace(/\D/g, '').slice(0, 2)
@@ -621,8 +752,7 @@
                     this[part] = typed
                 }
 
-                // Two digits is as much as any part takes, and a leading digit
-                // that cannot be extended is finished as soon as it is typed.
+                // Move on after two digits, or after a first digit no second digit could extend.
                 const cannotExtend = part === 'hour'
                     ? typed > (this.config.hoursCycle === 24 ? 2 : 1)
                     : typed > 5
@@ -685,9 +815,7 @@
                 this.secondText = this.second === null ? '' : pad2(this.second)
             },
 
-            // ------------------------------------------------------------------
             // Bounds
-            // ------------------------------------------------------------------
 
             snap(value, step, wrap) {
                 if (step <= 1) {
@@ -697,18 +825,14 @@
                 return (Math.round(value / step) * step) % wrap
             },
 
-            /**
-             * Drag the draft back inside the bounds. Typing and the arrow keys can
-             * reach a time the dial would have refused, and a field that quietly
-             * keeps an impossible value only fails later, at validation.
-             */
+            // Typing and arrow keys can reach times the dial refuses, so clamp the draft here.
             pullIntoBounds() {
                 if (this.hour === null) {
                     return
                 }
 
-                const min = parseBound(this.config.minTime)
-                const max = parseBound(this.config.maxTime)
+                const min = this.minBound
+                const max = this.maxBound
                 const current = toSeconds(this.hour, this.minute ?? 0, this.second ?? 0)
                 const bounded = clamp(current, min ?? current, max ?? current)
 

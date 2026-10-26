@@ -6,11 +6,6 @@ use Devletes\TimePicker\Tests\Fixtures\PickerComponent;
 use Devletes\TimePicker\Tests\TestCase;
 use Livewire\Livewire;
 
-/**
- * A bound the pointer honours is a courtesy — the dial dims what it will not
- * take. A bound the server honours is the constraint, because the panel is
- * not the only way a value arrives.
- */
 class BoundsTest extends TestCase
 {
     public function test_a_time_inside_the_bounds_saves(): void

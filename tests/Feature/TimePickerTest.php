@@ -17,11 +17,6 @@ class TimePickerTest extends TestCase
             ->assertSee('fi-dtp-face', escape: false);
     }
 
-    /**
-     * The state a non-native picker is entangled with is Filament's internal
-     * one — a whole datetime, even here. The panel has to read and write that
-     * shape or the field silently keeps the wrong hour.
-     */
     public function test_it_writes_back_in_filaments_internal_format(): void
     {
         $this->assertSame('Y-m-d H:i:s', $this->picker()->getClockConfig()['internalFormat']);
@@ -43,10 +38,6 @@ class TimePickerTest extends TestCase
             ->assertSchemaStateSet(['clock_in' => '17:45']);
     }
 
-    /**
-     * `->native()` is the escape hatch: rendering goes back to Filament and
-     * the browser draws its own input, which is the right thing on a phone.
-     */
     public function test_native_hands_rendering_back_to_filament(): void
     {
         $this->assertFalse(TimePicker::make('t')->native()->hasView());
@@ -88,6 +79,16 @@ class TimePickerTest extends TestCase
         $this->assertSame('Now', TimePicker::make('t')->getNowLabel());
 
         $this->assertSame('Confirm', TimePicker::make('t')->okLabel('Confirm')->getOkLabel());
+    }
+
+    public function test_the_dial_names_the_unit_it_is_setting(): void
+    {
+        $labels = $this->picker()->getClockConfig()['labels']['dial'];
+
+        $this->assertSame(['hour' => 'hr', 'minute' => 'min', 'second' => 'sec'], $labels);
+
+        Livewire::test(PickerComponent::class, ['time' => '09:30'])
+            ->assertSee('fi-dtp-dial-label', escape: false);
     }
 
     public function test_the_now_button_can_be_turned_off(): void

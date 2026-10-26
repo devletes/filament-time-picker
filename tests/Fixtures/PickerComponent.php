@@ -10,12 +10,6 @@ use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
 use Livewire\Component;
 
-/**
- * The smallest real host for the picker: a Livewire component with a Filament
- * schema. Tests drive this rather than calling the field's methods on a bare
- * instance, so the state cast, the field wrapper and the validation rules are
- * hit the way an application would hit them.
- */
 class PickerComponent extends Component implements HasActions, HasSchemas
 {
     use InteractsWithActions;
@@ -45,7 +39,6 @@ class PickerComponent extends Component implements HasActions, HasSchemas
             : $this->form->fill(['clock_in' => $time]);
     }
 
-    /** What a save button does: read the validated state back. */
     public function save(): void
     {
         $this->form->getState();

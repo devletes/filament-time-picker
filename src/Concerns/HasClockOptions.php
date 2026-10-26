@@ -6,94 +6,74 @@ use Carbon\CarbonInterface;
 use Closure;
 use Illuminate\Support\Carbon;
 
-/**
- * Everything the dial adds on top of Filament's own time picker. The
- * inherited options — seconds, steps, display format, timezone, locale —
- * are read as they are and are not restated here.
- */
 trait HasClockOptions
 {
-    protected int | Closure | null $hoursCycle = null;
+    protected int|Closure|null $hoursCycle = null;
 
-    protected CarbonInterface | string | Closure | null $minTime = null;
+    protected CarbonInterface|string|Closure|null $minTime = null;
 
-    protected CarbonInterface | string | Closure | null $maxTime = null;
+    protected CarbonInterface|string|Closure|null $maxTime = null;
 
-    protected string | Closure | null $okLabel = null;
+    protected string|Closure|null $okLabel = null;
 
-    protected string | Closure | null $cancelLabel = null;
+    protected string|Closure|null $cancelLabel = null;
 
-    protected string | Closure | null $nowLabel = null;
+    protected string|Closure|null $nowLabel = null;
 
-    protected bool | Closure | null $hasNowButton = null;
+    protected bool|Closure|null $hasNowButton = null;
 
-    protected bool | Closure | null $shouldCloseOnComplete = null;
+    protected bool|Closure|null $shouldCloseOnComplete = null;
 
-    /**
-     * 12 for a single ring of 1–12 with an AM/PM switch, 24 for two rings
-     * with 13–00 on the inside.
-     */
-    public function hoursCycle(int | Closure | null $cycle): static
+    public function hoursCycle(int|Closure|null $cycle): static
     {
         $this->hoursCycle = $cycle;
 
         return $this;
     }
 
-    /**
-     * The earliest time that may be picked. Numerals outside the range are
-     * dimmed and refuse the pointer, and the same bound is enforced again on
-     * the server — see {@see \Devletes\TimePicker\Forms\Components\TimePicker::setUp()}.
-     */
-    public function minTime(CarbonInterface | string | Closure | null $time): static
+    public function minTime(CarbonInterface|string|Closure|null $time): static
     {
         $this->minTime = $time;
 
         return $this;
     }
 
-    /** The latest time that may be picked. */
-    public function maxTime(CarbonInterface | string | Closure | null $time): static
+    public function maxTime(CarbonInterface|string|Closure|null $time): static
     {
         $this->maxTime = $time;
 
         return $this;
     }
 
-    public function okLabel(string | Closure | null $label): static
+    public function okLabel(string|Closure|null $label): static
     {
         $this->okLabel = $label;
 
         return $this;
     }
 
-    public function cancelLabel(string | Closure | null $label): static
+    public function cancelLabel(string|Closure|null $label): static
     {
         $this->cancelLabel = $label;
 
         return $this;
     }
 
-    public function nowLabel(string | Closure | null $label): static
+    public function nowLabel(string|Closure|null $label): static
     {
         $this->nowLabel = $label;
 
         return $this;
     }
 
-    /** The footer shortcut that fills in the current time. */
-    public function nowButton(bool | Closure | null $condition = true): static
+    public function nowButton(bool|Closure|null $condition = true): static
     {
         $this->hasNowButton = $condition;
 
         return $this;
     }
 
-    /**
-     * Commit and close as soon as the last dial is set, instead of waiting
-     * for the panel to be confirmed.
-     */
-    public function closeOnComplete(bool | Closure | null $condition = true): static
+    public function closeOnComplete(bool|Closure|null $condition = true): static
     {
         $this->shouldCloseOnComplete = $condition;
 
@@ -109,8 +89,7 @@ trait HasClockOptions
             return $cycle;
         }
 
-        // Nothing said, so the dial follows the field: a format that writes
-        // the hour as 1–12 gets the 12-hour face, everything else the 24.
+        // Unset: follow the display format's hour cycle.
         return $this->displayFormatIsTwelveHour() ? 12 : 24;
     }
 
@@ -149,11 +128,7 @@ trait HasClockOptions
         return (bool) ($this->evaluate($this->shouldCloseOnComplete) ?? config('time-picker.close_on_complete', false));
     }
 
-    /**
-     * Whether the display format writes the hour as 1–12. `g` and `h` are the
-     * 12-hour tokens; a backslash escapes the character after it, so `\h` is
-     * the letter h and says nothing about the cycle.
-     */
+    /** `g`/`h` are the 12-hour tokens; a backslash (chr 92) escapes the next character. */
     protected function displayFormatIsTwelveHour(): bool
     {
         $format = $this->getDisplayFormat();
@@ -174,8 +149,7 @@ trait HasClockOptions
         return false;
     }
 
-    /** Bounds are held as wall-clock `H:i:s`, whatever they were given as. */
-    protected function normaliseTime(CarbonInterface | string | null $time): ?string
+    protected function normaliseTime(CarbonInterface|string|null $time): ?string
     {
         if (blank($time)) {
             return null;

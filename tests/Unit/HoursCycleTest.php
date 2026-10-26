@@ -5,11 +5,6 @@ namespace Devletes\TimePicker\Tests\Unit;
 use Devletes\TimePicker\Forms\Components\TimePicker;
 use Devletes\TimePicker\Tests\TestCase;
 
-/**
- * Nothing said, and the dial follows the field: a format that writes the hour
- * as 1–12 gets the 12-hour face. The alternative — a fixed default — puts a
- * dial reading "3" beside an input reading "15:00".
- */
 class HoursCycleTest extends TestCase
 {
     public function test_a_twelve_hour_display_format_gets_the_twelve_hour_face(): void
@@ -31,7 +26,6 @@ class HoursCycleTest extends TestCase
 
     public function test_an_escaped_hour_token_is_a_letter_not_a_cycle(): void
     {
-        // `\h` is the letter h — "17h30", not a 12-hour hour.
         $this->assertSame(24, TimePicker::make('t')->displayFormat('H\\h i')->getHoursCycle());
     }
 
@@ -47,7 +41,6 @@ class HoursCycleTest extends TestCase
 
         $this->assertSame(12, TimePicker::make('t')->displayFormat('H:i')->getHoursCycle());
 
-        // A field still gets the last word.
         $this->assertSame(24, TimePicker::make('t')->hoursCycle(24)->getHoursCycle());
     }
 

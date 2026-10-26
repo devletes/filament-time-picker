@@ -12,8 +12,8 @@ use Filament\FilamentServiceProvider;
 use Filament\Forms\FormsServiceProvider;
 use Filament\Infolists\InfolistsServiceProvider;
 use Filament\Notifications\NotificationsServiceProvider;
-use Filament\Schemas\SchemasServiceProvider;
 use Filament\Schemas\Schema;
+use Filament\Schemas\SchemasServiceProvider;
 use Filament\Support\SupportServiceProvider;
 use Filament\Tables\TablesServiceProvider;
 use Filament\Widgets\WidgetsServiceProvider;
@@ -39,8 +39,7 @@ abstract class TestCase extends Orchestra
             NotificationsServiceProvider::class,
             WidgetsServiceProvider::class,
             FilamentServiceProvider::class,
-            // Filament rebinds Livewire's DataStore with a plain bind(), so
-            // Livewire has to register afterwards for its binding to win.
+            // Must follow Filament, which rebinds Livewire's DataStore with a plain bind().
             LivewireServiceProvider::class,
             TimePickerServiceProvider::class,
         ];
@@ -52,11 +51,7 @@ abstract class TestCase extends Orchestra
         $app['config']->set('app.timezone', 'UTC');
     }
 
-    /**
-     * A picker attached to a schema. Several of the field's getters read the
-     * container — whether it is disabled, whether it is focused — so a bare
-     * instance cannot answer them.
-     */
+    /** Attached to a schema: some getters read the container, which a bare instance lacks. */
     protected function picker(string $name = 'clock_in'): TimePicker
     {
         return TimePicker::make($name)->container(Schema::make(new PickerComponent));

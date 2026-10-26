@@ -5,22 +5,25 @@
 [![License](https://img.shields.io/packagist/l/devletes/filament-time-picker.svg?style=flat-square)](https://packagist.org/packages/devletes/filament-time-picker)
 [![GitHub Stars](https://img.shields.io/github/stars/devletes/filament-time-picker?style=flat-square)](https://github.com/devletes/filament-time-picker/stargazers)
 
-A clock face for Filament's time fields — hour and minute dials, drag or tap or type.
+A clock face for Filament's time and date-time fields — hour and minute dials, drag or tap or type.
 
-- **A drop-in replacement.** Extends Filament's own `TimePicker`, so swapping the import is the whole migration
+- **Drop-in replacements.** `TimePicker` and `DateTimePicker` extend Filament's own, so swapping the import is the whole migration
 - **No dependencies.** No jQuery, no date library, no build step — vanilla JavaScript on the Alpine you already have
 - **The dial follows the field.** `g:i A` gets a 12-hour face with AM/PM, `H:i` gets a 24-hour face with an inner ring
-- **Every minute is reachable**, not every fifth, and `->minutesStep()` still coarsens it when you want that
-- **Bounds that hold.** `->minTime()` / `->maxTime()` dim the dial, clamp typing, and are re-checked server-side
-- **Type instead.** The panel's digits are inputs, with arrow keys stepping by the field's own step
-- **Optional seconds**, a third dial when `->seconds()` is on
-- Themed off Filament's palette variables — follows your panel's colour, light and dark
-- Translatable, publishable config and views
+- **Every minute is reachable**, not every fifth, and the steps still coarsen it when you want that
+- **Bounds that hold.** `minTime()` / `maxTime()` dim the dial, clamp typing, and are re-checked on the server
+- **A calendar to match**, with min and max dates, disabled dates and your locale's month and weekday names
+- Themed off Filament's palette — follows your panel's colour, light and dark
+
+<table><tr>
+<td width="50%"><img src="docs/images/layout_light.png" alt="The clock open on a form (light)"></td>
+<td width="50%"><img src="docs/images/layout_dark.png" alt="The clock open on a form (dark)"></td>
+</tr></table>
 
 ## Requirements
 
 - PHP `^8.2`
-- Filament `^4.0` or `^5.0`
+- Filament `^5.0` on Laravel 12 or 13
 
 ## Installation
 
@@ -28,128 +31,222 @@ A clock face for Filament's time fields — hour and minute dials, drag or tap o
 composer require devletes/filament-time-picker
 ```
 
-That is all. The stylesheet and the script register themselves with Filament's asset manager, so they are served on the panels that need them — there is nothing to add to your custom Tailwind theme.
-
-Publish anything you want to change:
+Then publish Filament's assets so the stylesheet and script are served on your panels:
 
 ```bash
-php artisan vendor:publish --tag=devletes-time-picker-config
-php artisan vendor:publish --tag=devletes-time-picker-views
-php artisan vendor:publish --tag=devletes-time-picker-translations
+php artisan filament:assets
 ```
+
+The package registers its own stylesheet and script with Filament's asset manager — there is nothing to add to your custom Tailwind theme.
 
 ## Quick start
 
 ```php
+use Devletes\TimePicker\Forms\Components\DateTimePicker;
 use Devletes\TimePicker\Forms\Components\TimePicker;
 
-TimePicker::make('clocked_in_at')
-    ->label('Clocked in at')
+TimePicker::make('deliver_at')
     ->seconds(false)
     ->displayFormat('g:i A');
+
+DateTimePicker::make('ships_at')
+    ->seconds(false)
+    ->displayFormat('M j, Y g:i A');
 ```
-
-## Why
-
-Filament's own `TimePicker` gives you hour and minute spinners. That is fine for a field nobody dwells on, and awkward for one people set all day — a shift, a schedule, an attendance correction.
-
-The other clock-face picker on the plugin list reaches for a jQuery plugin from 2017, and loads jQuery from a CDN on every page of your panel to get there. This one is about four hundred lines of vanilla JavaScript and takes nothing with it.
 
 ## A drop-in replacement
 
-The component **extends** `Filament\Forms\Components\TimePicker`, so swapping the import is the whole migration:
+Both components **extend** Filament's own, so swapping the import is the whole migration:
 
 ```diff
 -use Filament\Forms\Components\TimePicker;
 +use Devletes\TimePicker\Forms\Components\TimePicker;
+
+-use Filament\Forms\Components\DateTimePicker;
++use Devletes\TimePicker\Forms\Components\DateTimePicker;
 ```
 
-Everything you already know still works and still means the same thing — `->seconds()`, `->minutesStep()`, `->format()`, `->displayFormat()`, `->timezone()`, `->live()`, `->disabled()`, the affixes, the validation. The state cast is Filament's own, so nothing about what is stored changes.
+Everything you already use still works and still means the same thing — `seconds()`, the steps, `format()`, `displayFormat()`, `timezone()`, `live()`, `disabled()`, the affixes and the validation. The state cast is Filament's own, so nothing about what is stored changes.
 
 ## The dial follows the field
 
-Say nothing, and the cycle is read off the display format. A field that writes its hour as 1–12 gets the 12-hour face with an AM/PM switch; anything else gets the 24-hour face, with 13–23 and midnight on an inner ring.
+Say nothing, and the face is read off the display format. A field that writes its hour as 1–12 gets the 12-hour face with an AM/PM switch; anything else gets the 24-hour face, with 13–23 and midnight on an inner ring.
 
 ```php
-TimePicker::make('start')->displayFormat('g:i A');   // 12-hour face
-TimePicker::make('start')->displayFormat('H:i');     // 24-hour face
-TimePicker::make('start')->hoursCycle(24);           // say so yourself
+TimePicker::make('deliver_at')->displayFormat('g:i A');   // 12-hour face
+TimePicker::make('cutoff')->displayFormat('H:i');         // 24-hour face
+TimePicker::make('cutoff')->hoursCycle(24);               // say so yourself
 ```
 
-The alternative — a fixed default — leaves a dial reading "3" beside an input reading "15:00". Set `time-picker.hours_cycle` in the config to make one cycle the rule everywhere.
+<table><tr>
+<td width="50%"><img src="docs/images/twelve_hour_light.png" alt="The 12-hour face (light)"></td>
+<td width="50%"><img src="docs/images/twelve_hour_dark.png" alt="The 12-hour face (dark)"></td>
+</tr></table>
 
-## Precision
+<table><tr>
+<td width="50%"><img src="docs/images/twenty_four_hour_light.png" alt="The 24-hour face with its inner ring (light)"></td>
+<td width="50%"><img src="docs/images/twenty_four_hour_dark.png" alt="The 24-hour face with its inner ring (dark)"></td>
+</tr></table>
 
-The dial takes **every minute**, not every fifth. The numerals are drawn at the fives because sixty of them is unreadable, but dragging between them lands on 9:07 the way you would expect.
+Set `time-picker.hours_cycle` in the config to make one face the rule everywhere.
 
-Filament's own stepping is honoured if you want it coarser:
+## Minutes and seconds
+
+Picking an hour moves to the minute dial. The dial takes **every minute**: the numerals are drawn at the fives, but dragging between them lands on 9:07 the way you would expect. A small label above the pin says which unit you are setting.
 
 ```php
 TimePicker::make('slot')->minutesStep(15);   // quarter hours only
+TimePicker::make('slot')->hoursStep(2);
 ```
 
-`->seconds()` adds a third dial, and `->secondsStep()` and `->hoursStep()` work the same way.
+<table><tr>
+<td width="50%"><img src="docs/images/minutes_light.png" alt="The minute dial (light)"></td>
+<td width="50%"><img src="docs/images/minutes_dark.png" alt="The minute dial (dark)"></td>
+</tr></table>
+
+`seconds()` adds a third dial, and `secondsStep()` coarsens it the same way.
+
+```php
+TimePicker::make('loaded_at')
+    ->seconds()
+    ->displayFormat('H:i:s');
+```
+
+<table><tr>
+<td width="50%"><img src="docs/images/seconds_light.png" alt="The seconds dial (light)"></td>
+<td width="50%"><img src="docs/images/seconds_dark.png" alt="The seconds dial (dark)"></td>
+</tr></table>
 
 ## Bounds
 
 ```php
-TimePicker::make('clocked_in_at')
-    ->minTime('06:00')
-    ->maxTime('22:00');
+TimePicker::make('pickup')
+    ->minTime('09:00')
+    ->maxTime('17:00');
 ```
 
-Numerals outside the range are dimmed and refuse the pointer, typing is pulled back inside, and the same bound is checked again on the server — the panel is not the only way a value arrives. The message names the bound in the field's own format ("must be no earlier than 6:00 AM").
+Numerals outside the range are dimmed and refuse the pointer, typing is pulled back inside, and the same bound is checked again on the server — the panel is not the only way a value arrives. The message names the bound in the field's own format ("must be no earlier than 9:00 AM"). Both accept a string, a `Carbon` instance, or a closure.
 
-Both accept a string, a `Carbon` instance, or a closure.
+<table><tr>
+<td width="50%"><img src="docs/images/bounds_light.png" alt="Hours outside 9 AM–5 PM dimmed (light)"></td>
+<td width="50%"><img src="docs/images/bounds_dark.png" alt="Hours outside 9 AM–5 PM dimmed (dark)"></td>
+</tr></table>
 
-## Typing
+## Date and time
 
-The two big digits in the panel are inputs. Click one and type; it moves to the minute on its own when the hour cannot be extended. The arrow keys nudge by the field's own step. Backspace on the closed field clears it.
+`DateTimePicker` pairs the same clock with a calendar. Picking a day moves straight to the clock, and the switch at the top of the panel moves between the two.
 
-## API reference
+```php
+DateTimePicker::make('ships_at')
+    ->seconds(false)
+    ->displayFormat('M j, Y g:i A')
+    ->minDate(now()->startOfDay())
+    ->maxDate(now()->addMonths(3))
+    ->disabledDates(['2026-12-25', '2026-12-26'])
+    ->minTime('08:00')
+    ->maxTime('20:00');
+```
 
-Everything Filament's `TimePicker` offers, plus:
+<table><tr>
+<td width="50%"><img src="docs/images/date_time_calendar_light.png" alt="The calendar (light)"></td>
+<td width="50%"><img src="docs/images/date_time_calendar_dark.png" alt="The calendar (dark)"></td>
+</tr></table>
 
-| Method | What it does |
-| --- | --- |
-| `->hoursCycle(12\|24)` | Fixes the face rather than reading it off the display format. |
-| `->minTime($time)` | The earliest value the field will take. String, `Carbon`, or closure. |
-| `->maxTime($time)` | The latest value the field will take. String, `Carbon`, or closure. |
-| `->closeOnComplete()` | Commit and close on the last dial instead of waiting for OK. |
-| `->nowButton(false)` | Drops the "Now" shortcut from the footer. |
-| `->okLabel($label)` | Relabels the confirm button. |
-| `->cancelLabel($label)` | Relabels the cancel button. |
-| `->nowLabel($label)` | Relabels the "Now" shortcut. |
-| `->native()` | Hands rendering back to Filament, giving the browser's own control. |
+<table><tr>
+<td width="50%"><img src="docs/images/date_time_clock_light.png" alt="The clock after picking a day (light)"></td>
+<td width="50%"><img src="docs/images/date_time_clock_dark.png" alt="The clock after picking a day (dark)"></td>
+</tr></table>
 
-`->native()` is worth knowing about: on a phone the platform's own time control is better than anything a web page can draw, so it is a reasonable thing to switch on for small screens.
+`minDate()` and `maxDate()` disable the days outside them, and on the first and last day their times narrow the clock too. `minTime()` / `maxTime()` stay a daily window, applied on every day. Month and weekday names follow the field's locale.
+
+Filament's other date options apply as they do there:
+
+```php
+DateTimePicker::make('ships_at')
+    ->weekStartsOnSunday()                  // or firstDayOfWeek(0–7)
+    ->defaultFocusedDate(now()->addWeek())  // the month an empty field opens on
+    ->closeOnDateSelection();               // pick a day and close, without the clock
+```
+
+Without a time, it is a calendar only:
+
+```php
+DateTimePicker::make('delivered_on')->time(false);
+```
+
+## Typing and the keyboard
+
+The big digits in the panel are inputs. Click one and type; it moves to the minute on its own when the hour cannot be extended. The arrow keys nudge by the field's own step, Escape closes the panel, and Backspace on the closed field clears it.
+
+## Closing and the footer
+
+By default the panel waits for **OK**. To save and close as soon as the last dial is set (the minute, or the second when seconds are on), and hide OK:
+
+```php
+TimePicker::make('call_back_at')->closeOnComplete();
+```
+
+The footer's buttons are Filament's own. Relabel them, or drop the "Now" shortcut:
+
+```php
+TimePicker::make('deliver_at')
+    ->okLabel('Set time')
+    ->cancelLabel('Back')
+    ->nowLabel('Right now')
+    ->nowButton(false);
+```
+
+## On phones
+
+`native()` hands rendering back to Filament, which gives the browser's own control — on a phone the platform's picker is the better choice:
+
+```php
+TimePicker::make('deliver_at')
+    ->native(fn (): bool => str_contains((string) request()->userAgent(), 'Mobile'));
+```
 
 ## Configuration
 
 `config/time-picker.php` sets the defaults every field starts from:
 
+```bash
+php artisan vendor:publish --tag=devletes-time-picker-config
+```
+
 ```php
 return [
-    // 12, 24, or null to read the cycle off each field's display format.
-    'hours_cycle' => null,
-
-    // Commit and close once the last dial is set.
-    'close_on_complete' => false,
-
-    // Show the "Now" shortcut in the panel footer.
-    'now_button' => true,
+    'hours_cycle' => null,         // 12, 24, or null to read it off each field's display format
+    'close_on_complete' => false,  // save and close once the last dial is set
+    'now_button' => true,          // show the "Now" shortcut
 ];
 ```
 
 ## Theming
 
-Every colour resolves through Filament's palette variables — `--primary-600`, `--gray-200` and friends — so the picker follows your panel's colour and its light and dark themes without being told.
+Every colour resolves through Filament's palette variables, so the picker follows your panel's primary colour and its light and dark themes without being told. To change it further, override the `--fi-dtp-*` variables in your theme stylesheet:
 
-If you want to go further, publish the views, or override the `.fi-dtp-*` classes in your theme's stylesheet.
+```css
+html .fi-dtp {
+    --fi-dtp-accent: var(--success-600);
+    --fi-dtp-plate: var(--gray-50);
+}
+
+html.dark .fi-dtp {
+    --fi-dtp-accent: var(--success-400);
+}
+```
+
+The variables are `surface`, `plate` (the dial), `border`, `text`, `muted`, `faded`, `accent`, `on-accent` and `hover`.
+
+Or publish the views to change the markup:
+
+```bash
+php artisan vendor:publish --tag=devletes-time-picker-views
+```
 
 ## Translations
 
-All user-facing strings go through `trans('devletes-time-picker::time-picker.*')`. To customise them or add locales, publish the language files:
+Every user-facing string goes through `devletes-time-picker::time-picker.*`. Publish the language files to reword them or add a locale:
 
 ```bash
 php artisan vendor:publish --tag=devletes-time-picker-translations
@@ -157,11 +254,32 @@ php artisan vendor:publish --tag=devletes-time-picker-translations
 
 Then edit or add files under `lang/vendor/devletes-time-picker/`.
 
+## API reference
+
+Everything Filament's `TimePicker` and `DateTimePicker` offer, plus:
+
+| Method | What it does |
+| --- | --- |
+| `hoursCycle(12\|24)` | Fixes the face rather than reading it off the display format |
+| `minTime($time)` | The earliest time of day the field will take. String, `Carbon`, or closure |
+| `maxTime($time)` | The latest time of day the field will take. String, `Carbon`, or closure |
+| `closeOnComplete()` | Save and close once the last dial is set, and hide OK |
+| `nowButton(false)` | Drops the "Now" shortcut from the footer |
+| `okLabel($label)` | Relabels the confirm button |
+| `cancelLabel($label)` | Relabels the cancel button |
+| `nowLabel($label)` | Relabels the "Now" shortcut |
+| `native()` | Hands rendering back to Filament for the browser's own control |
+
+On `DateTimePicker`, Filament's `minDate()`, `maxDate()`, `disabledDates()`, `firstDayOfWeek()`, `weekStartsOnMonday()`, `weekStartsOnSunday()`, `defaultFocusedDate()`, `closeOnDateSelection()`, `time()` and `seconds()` all apply to the calendar and the clock.
+
 ## Testing
 
 ```bash
+composer install
 composer test
 ```
+
+The suite runs on Testbench with the real Filament stack, against PHP 8.2–8.4 on Laravel 12 and 13.
 
 ## Need something custom?
 

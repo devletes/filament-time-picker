@@ -1,0 +1,44 @@
+laravel: '@testbench'
+
+providers:
+  - BladeUI\Icons\BladeIconsServiceProvider
+  - BladeUI\Heroicons\BladeHeroiconsServiceProvider
+  - Filament\Support\SupportServiceProvider
+  - Filament\Actions\ActionsServiceProvider
+  - Filament\Forms\FormsServiceProvider
+  - Filament\FilamentServiceProvider
+  - Filament\Infolists\InfolistsServiceProvider
+  - Filament\Notifications\NotificationsServiceProvider
+  - Filament\Schemas\SchemasServiceProvider
+  - Filament\Tables\TablesServiceProvider
+  - Filament\Widgets\WidgetsServiceProvider
+  - Livewire\LivewireServiceProvider
+  - Devletes\TimePicker\TimePickerServiceProvider
+  - Workbench\App\Providers\Filament\AdminPanelProvider
+
+seeders:
+  - Workbench\Database\Seeders\DatabaseSeeder
+
+workbench:
+  start: '/admin'
+  user: salman@example.com
+  install: true
+  health: false
+  discovers:
+    web: true
+    api: false
+    commands: false
+    components: false
+    factories: false
+    views: false
+  build:
+    - asset-publish
+    - create-sqlite-db
+    - db-wipe
+    - migrate-fresh
+  assets:
+    - laravel-assets
+  sync:
+    - from: storage
+      to: workbench/storage
+      reverse: true
