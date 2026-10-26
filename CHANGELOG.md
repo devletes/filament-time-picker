@@ -2,9 +2,9 @@
 
 All notable changes to `devletes/filament-time-picker` will be documented in this file.
 
-## [Unreleased]
+## [1.0.0] - 2026-10-25
 
-First release.
+First stable release.
 
 ### Added
 
