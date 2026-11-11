@@ -1,3 +1,15 @@
+> [!WARNING]
+> **This package is deprecated. Use [devletes/filament-chrono-picker](https://github.com/devletes/filament-chrono-picker) instead.**
+> It is the same clock-face picker grown into a full date and time suite: time, date, date-time, month and year pickers, range pickers, and month and year grids in the calendar. New features and fixes land only there; this repository stays up and 1.x keeps working.
+>
+> ```bash
+> composer remove devletes/filament-time-picker
+> composer require devletes/filament-chrono-picker
+> php artisan filament:assets
+> ```
+>
+> Then change `Devletes\TimePicker` to `Devletes\ChronoPicker` in your imports. The old class names keep resolving (with a deprecation notice) until Chrono Picker 1.0, and a published `config/time-picker.php` keeps applying until you rename it to `config/chrono-picker.php`. See [Moving from devletes/filament-time-picker](https://github.com/devletes/filament-chrono-picker#moving-from-devletesfilament-time-picker).
+
 # Filament Time Picker
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/devletes/filament-time-picker.svg?style=flat-square)](https://packagist.org/packages/devletes/filament-time-picker)
