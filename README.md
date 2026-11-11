@@ -8,7 +8,7 @@
 > php artisan filament:assets
 > ```
 >
-> Then change `Devletes\TimePicker` to `Devletes\ChronoPicker` in your imports. The old class names keep resolving (with a deprecation notice) until Chrono Picker 1.0, and a published `config/time-picker.php` keeps applying until you rename it to `config/chrono-picker.php`. See [Moving from devletes/filament-time-picker](https://github.com/devletes/filament-chrono-picker#moving-from-devletesfilament-time-picker).
+> Then change `Devletes\TimePicker` to `Devletes\ChronoPicker` in your imports. The old class names keep resolving (with a deprecation notice) until Chrono Picker 1.0, and a published `config/time-picker.php` keeps applying until you rename it to `config/chrono-picker.php`.
 
 # Filament Time Picker
 
