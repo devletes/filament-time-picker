@@ -3,6 +3,7 @@
     "description": "A clock-face time and date-time picker for Filament — hour and minute dials, drag or type, natively in Livewire and Alpine. No jQuery, no date library, no build step.",
     "type": "library",
     "license": "MIT",
+    "abandoned": "devletes/filament-chrono-picker",
     "keywords": [
         "filament",
         "filament-plugin",

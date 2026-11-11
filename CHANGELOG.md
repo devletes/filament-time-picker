@@ -2,6 +2,12 @@
 
 All notable changes to `devletes/filament-time-picker` will be documented in this file.
 
+## [1.0.1] - 2026-11-11
+
+### Deprecated
+
+- This package is abandoned in favour of [devletes/filament-chrono-picker](https://github.com/devletes/filament-chrono-picker). Composer now says so on install; the code is unchanged.
+
 ## [1.0.0] - 2026-10-25
 
 First stable release.
